@@ -3,6 +3,7 @@ SENDCAT
 Sendcat is a small utility useful for sharing files in a local network.
 It use netcat for tranfer files through wireless and cable network.
 There are two flavours of sendcat, a command line version and one with a simple gui zenity-based.
+
 The sintax for the cli version is:
 
 sendcat filename
