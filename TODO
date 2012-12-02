@@ -1,0 +1,11 @@
+GLOBAL
+- Support for systemd powered distro for turning on/off network-manager
+- Support for Android, using busybox or maybe without root
+- Encrypted transmission on wifi connection (use of cryptcat?)
+	
+CLI version
+- Add support to wifi transfer by switch option passed as command line argument or something else (if a ip address is specified use wifi, otherwise use cable connection)
+
+GUI version
+- New gui (portable and platfom-indipendent) with a single window that allow to specify all the parameters (ip address, port used, cable/wifi switch, directory or single file selection)
+- Support for directory transfer
