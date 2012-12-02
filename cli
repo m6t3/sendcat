@@ -1,0 +1,74 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]
+then
+	echo "Error 800A"
+	exit -1
+fi
+
+FILE=$1
+
+PORT=1212
+
+echo "Ciao, $USER"
+if [ -f "$FILE" -o -d "$FILE" ]
+then
+	MODE=0
+	echo "Verrà inviato il file $FILE, premere ENTER per continuare, CTRL+C per terminare"
+	read
+	if [ -d "$FILE" ]
+	then
+		echo "Il file da inviare è una cartella, verrà prima compresso"
+		tar cPf /tmp/sendcat-tmp.tar "$FILE"
+		FILE="/tmp/sendcat-tmp.tar"
+		echo "Compressione eseguita"
+	fi
+else
+	MODE=1
+	echo "Verrà ricevuto il file $FILE, premere ENTER per continuare, CTRL+C per terminare"
+	read
+fi
+
+if [ $# -eq 2 ]
+then
+	IP=$2
+	WIFI=1
+else
+	WIFI=0
+	if [ $MODE -eq 0 ]
+	then
+		MYIP=12.12.12.13
+		IP=12.12.12.12
+	else	
+		MYIP=12.12.12.12
+	fi
+fi
+
+if [ $WIFI -eq 0 ]
+then
+	echo "Potrebbe essere necessario richiedere la password per configurare la rete"
+	sudo service network-manager stop
+	sudo ifconfig eth0 $MYIP up
+fi
+
+if [ $MODE -eq 1 ]
+then
+	echo "In ricezione"
+	nc -l $PORT > "$FILE"
+else
+	echo "In invio"
+	nc $IP $PORT < "$FILE"
+fi
+
+echo "Trasferimento completato!"
+if [ $WIFI -eq 0 ]
+then
+	sudo service network-manager start
+fi
+
+if [ -f /tmp/sendcat-tmp.tar ]
+then 
+	rm /tmp/sendcat-tmp.tar
+fi
+
+exit 0
