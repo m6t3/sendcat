@@ -12,8 +12,8 @@ then
 	if [ -d "$FILE" ]
 	then
 		echo "Il file da inviare è una cartella, verrà prima compresso"
-		tar cPf /tmp/qaz.tar "$FILE"
-		FILE="/tmp/qaz.tar"
+		tar cPf /tmp/sendcat-tmp.tar "$FILE"
+		FILE="/tmp/sendcat-tmp.tar"
 		echo "Compressione eseguita"
 	fi
 else
@@ -43,9 +43,9 @@ fi
 echo "Trasferimento completato!"
 sudo service network-manager start
 
-if [ -f /tmp/qaz.tar ]
+if [ -f /tmp/sendcat-tmp.tar ]
 then 
-	rm /tmp/qaz.tar
+	rm /tmp/sendcat-tmp.tar
 fi
 
 exit 0
