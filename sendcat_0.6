@@ -1,0 +1,102 @@
+#!/bin/bash
+
+PORT=1212
+
+if [ $# -gt 0 ]
+then
+	/usr/bin/sendcat-cli $@
+	exit 0
+fi
+
+zenity --question --text="Ciao $USER, cosa vuoi fare?" --ok-label="Inviare" --cancel-label="Ricevere" --title="SendCat"
+if [ $? -eq 0 ]
+then
+	MODE=0
+	FILE=$(zenity --file-selection --title="Scegli un file da inviare" 2> /dev/null)
+	if [ $? -ne 0 ] 
+	then 
+		exit 1 
+	fi
+	zenity --question --title="SendCat" --text="Verrà inviato $FILE, continuare?"
+	if [ $? -ne 0 ] 
+	then 
+		exit 1
+	fi
+elif [ $? -eq 1 ]
+then
+	MODE=1
+	FILE=$(zenity --entry --text="Inserire nome del file" --title="Ricezione File" 2> /dev/null)
+	if [ $? -ne 0 ] 
+	then 
+		exit 1 
+	fi
+	zenity --question --title="SendCat" --text="Verrà ricevuto $FILE, continuare?" 2> /dev/null
+	if [ $? -ne 0 ] 
+	then 
+		exit 1 
+	fi
+else 
+	exit 0
+fi	
+
+
+zenity --question --text="Vuoi utilizzare una connessione via cavo o wifi?" --ok-label="Cavo" --cancel-label="Wifi" --title="Tipo di connessione"
+WIFI=$?
+
+if [ $WIFI -eq 0 ]
+then
+	zenity --warning --title="Richiesta permessi" --text="È necessaria la password per configurare la rete" --timeout=2 2> /dev/null
+	gksudo service network-manager stop
+fi
+
+if [ $MODE -eq 1 ]
+then
+	if [ $WIFI -eq 0 ]
+	then
+		MYIP="12.12.12.12"
+		gksudo ifconfig eth0 $MYIP up
+	else
+		MYIP=$(ifconfig | grep inet | grep Bcast | awk '{print $2}' | egrep -o '[0-9.]'+)
+	fi
+	zenity --info --text="In ascolto sull'indirizzo $MYIP" --title="SendCat" --timeout=2 2>/dev/null &
+	nc -l $PORT > $FILE
+#	gksudo "nc -d -l 12" | tee > "$FILE" >(zenity --progress --text="In ascolto sull'indirizzo $MYIP" --title="SendCat" --pulsate --auto-close --no-cancel) 
+	else
+	if [ $WIFI -eq 0 ]
+	then
+		gksudo ifconfig eth0 12.12.12.13 up
+		RECIP="12.12.12.12"
+	else
+		RECIP=$(zenity --entry --entry-text="192.168.1." --title="Indirizzo destinatario" --text="Inserire l'indirizzo ip del ricevente" 2> /dev/null) 
+		echo $RECIP
+	fi
+	if [ $? -ne 0 ]
+	then
+		zenity --warning --title="Errore!" --text="800A" 2>/dev/null
+		exit 1
+	fi
+#cat "$FILE" | tee >(nc $RECIP $PORT) >(zenity --progress --text="In invio" --pulsate --auto-close --no-cancel --title="SendCat") &> /dev/null
+	zenity --info --text="In invio all'indirizzo $RECIP" --title="SendCat" --timeout=2 2>/dev/null &
+	nc $RECIP $PORT < "$FILE"
+fi
+
+#kill $(pidof zenity) &>/dev/null
+
+#RUNNING=0
+#while [ $RUNNING -eq 0 ]
+#do
+#	sleep 1
+#	if [ -z "$(pidof zenity)" ]
+#	then
+#		gksudo pkill nc
+#		RUNNING=1
+#	fi
+#done
+
+zenity --info --text="Trasferimento di $FILE completato!" --title="SendCat" --timeout=5 2>/dev/null
+if [ $WIFI -eq 0 ]
+then
+		gksudo service network-manager start
+fi
+
+exit 0
