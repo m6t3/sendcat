@@ -11,7 +11,7 @@ FILE=$1
 PORT=1212
 
 echo "Ciao, $USER"
-if [ -f "$FILE" -o -d "$FILE" ]
+if [ -a "$FILE" ]
 then
 	MODE=0
 	echo "Verrà inviato il file $FILE, premere ENTER per continuare, CTRL+C per terminare"
